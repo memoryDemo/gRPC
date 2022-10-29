@@ -70,6 +70,6 @@ func main() {
 		log.Fatal("调用gRPC方法错误：", err)
 	}
 
-	fmt.Println("调用gRPC方法成功，ProdStock = ", resp.ProdStock, resp.User)
+	fmt.Println("调用gRPC方法成功，ProdStock = ", resp.ProdStock, resp.User, resp.Data)
 
 }

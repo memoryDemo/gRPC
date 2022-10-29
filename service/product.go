@@ -2,6 +2,7 @@ package service
 
 import (
 	"context"
+	"google.golang.org/protobuf/types/known/anypb"
 )
 
 var ProductService = &productService{}
@@ -18,7 +19,9 @@ func (p *productService) GetProductStock(context context.Context, request *Produ
 	// 实现具体的业务逻辑
 	stock := p.GetStockById(request.ProdId)
 	user := User{Username: "memory"}
-	return &ProductResponse{ProdStock: stock, User: &user}, nil
+	content := Content{Msg: "memory msg..."}
+	a, _ := anypb.New(&content)
+	return &ProductResponse{ProdStock: stock, User: &user, Data: a}, nil
 }
 
 func (p *productService) GetStockById(id int32) int32 {

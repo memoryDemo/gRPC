@@ -1,7 +1,8 @@
 syntax = "proto3";
 
 //从执行protoc这个命令的当前目录开始算起
-import "pbfile/user.proto";
+import "user.proto";
+import "google/protobuf/any.proto";
 
 option go_package = "../service";
 
@@ -13,10 +14,15 @@ message ProductRequest{
   int32 prod_id = 1; // 1代表顺序
 }
 
+message Content {
+  string msg = 1;
+}
+
 // 定义response model
 message ProductResponse{
   int32 prod_stock = 1;   //  1代表顺序
   User user = 2;
+  google.protobuf.Any data = 3;
 }
 
 // 定义服务主题

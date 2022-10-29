@@ -1,0 +1,12 @@
+syntax = "proto3";
+
+package service;
+option go_package = "../service";
+// 使用any类型，需要导入这个
+import "google/protobuf/any.proto";
+
+// 定义入参消息
+message HelloParam{
+  // any,代表可以是任何类型
+  google.protobuf.Any data = 1;
+}
