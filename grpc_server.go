@@ -10,9 +10,9 @@ import (
 	"google.golang.org/grpc/credentials"
 	"google.golang.org/grpc/metadata"
 	"google.golang.org/grpc/status"
+	"grpc/service"
 	"io/ioutil"
 	"log"
-	"ms-proto/service"
 	"net"
 )
 

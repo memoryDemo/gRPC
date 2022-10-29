@@ -7,10 +7,10 @@ import (
 	"fmt"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials"
+	"grpc/client/auth"
+	"grpc/service"
 	"io/ioutil"
 	"log"
-	"ms-proto/client/auth"
-	"ms-proto/service"
 )
 
 func main() {

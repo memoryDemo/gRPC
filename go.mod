@@ -1,4 +1,4 @@
-module ms-proto
+module grpc
 
 go 1.17
 
