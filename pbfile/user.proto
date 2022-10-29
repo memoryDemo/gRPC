@@ -1,0 +1,15 @@
+//  指定的当前proto语法的版本，有2和3
+syntax = "proto3";
+
+//  option go_package = "path;name"; path 表示生成的go文件的存放地址，会自动生成目录的
+option go_package = "../service"; //  name 表示生成的go文件所属的包名
+
+//  指定等会文件生成出来的package  和 路径文件名没关系，是go中的package名称
+package service;
+
+message  User {
+  string username = 1;
+  int32 age = 2;
+  optional  string password = 3;
+  repeated  string addresses = 4;
+}
