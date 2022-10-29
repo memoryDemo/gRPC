@@ -16,10 +16,9 @@ func (p *productService) mustEmbedUnimplementedProdServiceServer() {
 
 func (p *productService) GetProductStock(context context.Context, request *ProductRequest) (*ProductResponse, error) {
 	// 实现具体的业务逻辑
-
 	stock := p.GetStockById(request.ProdId)
-
-	return &ProductResponse{ProdStock: stock}, nil
+	user := User{Username: "memory"}
+	return &ProductResponse{ProdStock: stock, User: &user}, nil
 }
 
 func (p *productService) GetStockById(id int32) int32 {

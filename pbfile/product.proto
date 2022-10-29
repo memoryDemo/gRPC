@@ -1,5 +1,8 @@
 syntax = "proto3";
 
+//从执行protoc这个命令的当前目录开始算起
+import "pbfile/user.proto";
+
 option go_package = "../service";
 
 package service;
@@ -13,6 +16,7 @@ message ProductRequest{
 // 定义response model
 message ProductResponse{
   int32 prod_stock = 1;   //  1代表顺序
+  User user = 2;
 }
 
 // 定义服务主题
