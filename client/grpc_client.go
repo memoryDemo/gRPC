@@ -5,10 +5,10 @@ import (
 	"crypto/tls"
 	"crypto/x509"
 	"fmt"
+	"github.com/memory-grpc/client/auth"
+	"github.com/memory-grpc/service"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials"
-	"grpc/client/auth"
-	"grpc/service"
 	"io/ioutil"
 	"log"
 )
