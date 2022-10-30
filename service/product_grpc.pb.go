@@ -24,6 +24,8 @@ const _ = grpc.SupportPackageIsVersion7
 type ProdServiceClient interface {
 	// 定义方法
 	GetProductStock(ctx context.Context, in *ProductRequest, opts ...grpc.CallOption) (*ProductResponse, error)
+	// 客户端 定义方法
+	UpdateProductStockClientStream(ctx context.Context, opts ...grpc.CallOption) (ProdService_UpdateProductStockClientStreamClient, error)
 }
 
 type prodServiceClient struct {
@@ -43,12 +45,48 @@ func (c *prodServiceClient) GetProductStock(ctx context.Context, in *ProductRequ
 	return out, nil
 }
 
+func (c *prodServiceClient) UpdateProductStockClientStream(ctx context.Context, opts ...grpc.CallOption) (ProdService_UpdateProductStockClientStreamClient, error) {
+	stream, err := c.cc.NewStream(ctx, &ProdService_ServiceDesc.Streams[0], "/service.ProdService/UpdateProductStockClientStream", opts...)
+	if err != nil {
+		return nil, err
+	}
+	x := &prodServiceUpdateProductStockClientStreamClient{stream}
+	return x, nil
+}
+
+type ProdService_UpdateProductStockClientStreamClient interface {
+	Send(*ProductRequest) error
+	CloseAndRecv() (*ProductResponse, error)
+	grpc.ClientStream
+}
+
+type prodServiceUpdateProductStockClientStreamClient struct {
+	grpc.ClientStream
+}
+
+func (x *prodServiceUpdateProductStockClientStreamClient) Send(m *ProductRequest) error {
+	return x.ClientStream.SendMsg(m)
+}
+
+func (x *prodServiceUpdateProductStockClientStreamClient) CloseAndRecv() (*ProductResponse, error) {
+	if err := x.ClientStream.CloseSend(); err != nil {
+		return nil, err
+	}
+	m := new(ProductResponse)
+	if err := x.ClientStream.RecvMsg(m); err != nil {
+		return nil, err
+	}
+	return m, nil
+}
+
 // ProdServiceServer is the server API for ProdService service.
 // All implementations must embed UnimplementedProdServiceServer
 // for forward compatibility
 type ProdServiceServer interface {
 	// 定义方法
 	GetProductStock(context.Context, *ProductRequest) (*ProductResponse, error)
+	// 客户端 定义方法
+	UpdateProductStockClientStream(ProdService_UpdateProductStockClientStreamServer) error
 	mustEmbedUnimplementedProdServiceServer()
 }
 
@@ -58,6 +96,9 @@ type UnimplementedProdServiceServer struct {
 
 func (UnimplementedProdServiceServer) GetProductStock(context.Context, *ProductRequest) (*ProductResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method GetProductStock not implemented")
+}
+func (UnimplementedProdServiceServer) UpdateProductStockClientStream(ProdService_UpdateProductStockClientStreamServer) error {
+	return status.Errorf(codes.Unimplemented, "method UpdateProductStockClientStream not implemented")
 }
 func (UnimplementedProdServiceServer) mustEmbedUnimplementedProdServiceServer() {}
 
@@ -90,6 +131,32 @@ func _ProdService_GetProductStock_Handler(srv interface{}, ctx context.Context, 
 	return interceptor(ctx, in, info, handler)
 }
 
+func _ProdService_UpdateProductStockClientStream_Handler(srv interface{}, stream grpc.ServerStream) error {
+	return srv.(ProdServiceServer).UpdateProductStockClientStream(&prodServiceUpdateProductStockClientStreamServer{stream})
+}
+
+type ProdService_UpdateProductStockClientStreamServer interface {
+	SendAndClose(*ProductResponse) error
+	Recv() (*ProductRequest, error)
+	grpc.ServerStream
+}
+
+type prodServiceUpdateProductStockClientStreamServer struct {
+	grpc.ServerStream
+}
+
+func (x *prodServiceUpdateProductStockClientStreamServer) SendAndClose(m *ProductResponse) error {
+	return x.ServerStream.SendMsg(m)
+}
+
+func (x *prodServiceUpdateProductStockClientStreamServer) Recv() (*ProductRequest, error) {
+	m := new(ProductRequest)
+	if err := x.ServerStream.RecvMsg(m); err != nil {
+		return nil, err
+	}
+	return m, nil
+}
+
 // ProdService_ServiceDesc is the grpc.ServiceDesc for ProdService service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -102,6 +169,12 @@ var ProdService_ServiceDesc = grpc.ServiceDesc{
 			Handler:    _ProdService_GetProductStock_Handler,
 		},
 	},
-	Streams:  []grpc.StreamDesc{},
+	Streams: []grpc.StreamDesc{
+		{
+			StreamName:    "UpdateProductStockClientStream",
+			Handler:       _ProdService_UpdateProductStockClientStream_Handler,
+			ClientStreams: true,
+		},
+	},
 	Metadata: "product.proto",
 }

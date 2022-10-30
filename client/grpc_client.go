@@ -11,6 +11,8 @@ import (
 	"google.golang.org/grpc/credentials"
 	"io/ioutil"
 	"log"
+	"math/rand"
+	"time"
 )
 
 func main() {
@@ -64,12 +66,47 @@ func main() {
 	prodServiceClient := service.NewProdServiceClient(conn)
 
 	// 3. 像调用本地方法一样调用GetProductStock方法
-	resp, err := prodServiceClient.GetProductStock(context.Background(), &service.ProductRequest{ProdId: 334455})
+	//resp, err := prodServiceClient.GetProductStock(context.Background(), &service.ProductRequest{ProdId: 334455})
+	//if err != nil {
+	//	log.Fatal("调用gRPC方法错误：", err)
+	//}
+	//
+	//fmt.Println("调用gRPC方法成功，ProdStock = ", resp.ProdStock, resp.User, resp.Data)
 
+	//4. 客户端流
+	stream, err := prodServiceClient.UpdateProductStockClientStream(context.Background())
 	if err != nil {
-		log.Fatal("调用gRPC方法错误：", err)
+		log.Fatal("获取流出错", err)
 	}
+	rsp := make(chan struct{}, 1)
+	go prodRequest(stream, rsp)
+	select {
+	case <-rsp:
+		recv, err := stream.CloseAndRecv()
+		if err != nil {
+			log.Fatal(err)
+		}
+		stock := recv.ProdStock
+		fmt.Println("客户端收到响应：", stock)
+	}
+}
 
-	fmt.Println("调用gRPC方法成功，ProdStock = ", resp.ProdStock, resp.User, resp.Data)
+func prodRequest(stream service.ProdService_UpdateProductStockClientStreamClient, rsp chan struct{}) {
+	count := 0
+	for {
+		request := &service.ProductRequest{
+			ProdId: int32(rand.Intn(1000)),
+		}
 
+		err := stream.Send(request)
+		if err != nil {
+			log.Fatal(err)
+		}
+		time.Sleep(time.Second)
+		count++
+		if count > 10 {
+			rsp <- struct{}{}
+			break
+		}
+	}
 }
