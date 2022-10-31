@@ -5,6 +5,8 @@ import (
 	"fmt"
 	"google.golang.org/protobuf/types/known/anypb"
 	"io"
+	"math/rand"
+	"time"
 )
 
 var ProductService = &productService{}
@@ -30,6 +32,7 @@ func (p *productService) GetStockById(id int32) int32 {
 	return id
 }
 
+// UpdateProductStockClientStream 客户端流
 func (p *productService) UpdateProductStockClientStream(stream ProdService_UpdateProductStockClientStreamServer) error {
 	count := 0
 	for {
@@ -49,6 +52,25 @@ func (p *productService) UpdateProductStockClientStream(stream ProdService_Updat
 			if err != nil {
 				return err
 			}
+			return nil
+		}
+	}
+}
+
+// GetProductStockServerStream 服务端流
+func (p *productService) GetProductStockServerStream(request *ProductRequest, stream ProdService_GetProductStockServerStreamServer) error {
+	count := 0
+	for {
+		rsp := &ProductResponse{
+			ProdStock: int32(rand.Intn(1000)),
+		}
+		err := stream.Send(rsp)
+		if err != nil {
+			return err
+		}
+		time.Sleep(time.Second)
+		count++
+		if count > 10 {
 			return nil
 		}
 	}

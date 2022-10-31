@@ -9,6 +9,7 @@ import (
 	"github.com/memory-grpc/service"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials"
+	"io"
 	"io/ioutil"
 	"log"
 	"math/rand"
@@ -74,20 +75,43 @@ func main() {
 	//fmt.Println("调用gRPC方法成功，ProdStock = ", resp.ProdStock, resp.User, resp.Data)
 
 	//4. 客户端流
-	stream, err := prodServiceClient.UpdateProductStockClientStream(context.Background())
+	//stream, err := prodServiceClient.UpdateProductStockClientStream(context.Background())
+	//if err != nil {
+	//	log.Fatal("获取流出错", err)
+	//}
+	//rsp := make(chan struct{}, 1)
+	//go prodRequest(stream, rsp)
+	//select {
+	//case <-rsp:
+	//	recv, err := stream.CloseAndRecv()
+	//	if err != nil {
+	//		log.Fatal(err)
+	//	}
+	//	stock := recv.ProdStock
+	//	fmt.Println("客户端收到响应：", stock)
+	//}
+
+	//5. 服务端流
+	request := &service.ProductRequest{ProdId: 123}
+	stream, err := prodServiceClient.GetProductStockServerStream(context.Background(), request)
 	if err != nil {
 		log.Fatal("获取流出错", err)
 	}
-	rsp := make(chan struct{}, 1)
-	go prodRequest(stream, rsp)
-	select {
-	case <-rsp:
-		recv, err := stream.CloseAndRecv()
+
+	for {
+		recv, err := stream.Recv()
 		if err != nil {
+			if err == io.EOF {
+				fmt.Println("客户端数据接收完成")
+				err := stream.CloseSend()
+				if err != nil {
+					log.Fatal(err)
+				}
+				break
+			}
 			log.Fatal(err)
 		}
-		stock := recv.ProdStock
-		fmt.Println("客户端收到响应：", stock)
+		fmt.Println("客户端收到的流", recv.ProdStock)
 	}
 }
 

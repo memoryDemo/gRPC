@@ -29,8 +29,10 @@ message ProductResponse{
 service ProdService{
   // 定义方法
   rpc GetProductStock(ProductRequest) returns (ProductResponse);
-  //客户端 定义方法
+  //客户端流 定义方法
   rpc UpdateProductStockClientStream(stream ProductRequest) returns (ProductResponse);
+  //服务端流定义方法
+  rpc GetProductStockServerStream(ProductRequest) returns(stream ProductResponse);
 }
 
 
