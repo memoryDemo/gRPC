@@ -26,8 +26,10 @@ type ProdServiceClient interface {
 	GetProductStock(ctx context.Context, in *ProductRequest, opts ...grpc.CallOption) (*ProductResponse, error)
 	// 客户端流 定义方法
 	UpdateProductStockClientStream(ctx context.Context, opts ...grpc.CallOption) (ProdService_UpdateProductStockClientStreamClient, error)
-	// 服务端流定义方法
+	// 服务端流 定义方法
 	GetProductStockServerStream(ctx context.Context, in *ProductRequest, opts ...grpc.CallOption) (ProdService_GetProductStockServerStreamClient, error)
+	// 双向流 定义方法
+	SayHelloStream(ctx context.Context, opts ...grpc.CallOption) (ProdService_SayHelloStreamClient, error)
 }
 
 type prodServiceClient struct {
@@ -113,6 +115,37 @@ func (x *prodServiceGetProductStockServerStreamClient) Recv() (*ProductResponse,
 	return m, nil
 }
 
+func (c *prodServiceClient) SayHelloStream(ctx context.Context, opts ...grpc.CallOption) (ProdService_SayHelloStreamClient, error) {
+	stream, err := c.cc.NewStream(ctx, &ProdService_ServiceDesc.Streams[2], "/service.ProdService/SayHelloStream", opts...)
+	if err != nil {
+		return nil, err
+	}
+	x := &prodServiceSayHelloStreamClient{stream}
+	return x, nil
+}
+
+type ProdService_SayHelloStreamClient interface {
+	Send(*ProductRequest) error
+	Recv() (*ProductResponse, error)
+	grpc.ClientStream
+}
+
+type prodServiceSayHelloStreamClient struct {
+	grpc.ClientStream
+}
+
+func (x *prodServiceSayHelloStreamClient) Send(m *ProductRequest) error {
+	return x.ClientStream.SendMsg(m)
+}
+
+func (x *prodServiceSayHelloStreamClient) Recv() (*ProductResponse, error) {
+	m := new(ProductResponse)
+	if err := x.ClientStream.RecvMsg(m); err != nil {
+		return nil, err
+	}
+	return m, nil
+}
+
 // ProdServiceServer is the server API for ProdService service.
 // All implementations must embed UnimplementedProdServiceServer
 // for forward compatibility
@@ -121,8 +154,10 @@ type ProdServiceServer interface {
 	GetProductStock(context.Context, *ProductRequest) (*ProductResponse, error)
 	// 客户端流 定义方法
 	UpdateProductStockClientStream(ProdService_UpdateProductStockClientStreamServer) error
-	// 服务端流定义方法
+	// 服务端流 定义方法
 	GetProductStockServerStream(*ProductRequest, ProdService_GetProductStockServerStreamServer) error
+	// 双向流 定义方法
+	SayHelloStream(ProdService_SayHelloStreamServer) error
 	mustEmbedUnimplementedProdServiceServer()
 }
 
@@ -138,6 +173,9 @@ func (UnimplementedProdServiceServer) UpdateProductStockClientStream(ProdService
 }
 func (UnimplementedProdServiceServer) GetProductStockServerStream(*ProductRequest, ProdService_GetProductStockServerStreamServer) error {
 	return status.Errorf(codes.Unimplemented, "method GetProductStockServerStream not implemented")
+}
+func (UnimplementedProdServiceServer) SayHelloStream(ProdService_SayHelloStreamServer) error {
+	return status.Errorf(codes.Unimplemented, "method SayHelloStream not implemented")
 }
 func (UnimplementedProdServiceServer) mustEmbedUnimplementedProdServiceServer() {}
 
@@ -217,6 +255,32 @@ func (x *prodServiceGetProductStockServerStreamServer) Send(m *ProductResponse) 
 	return x.ServerStream.SendMsg(m)
 }
 
+func _ProdService_SayHelloStream_Handler(srv interface{}, stream grpc.ServerStream) error {
+	return srv.(ProdServiceServer).SayHelloStream(&prodServiceSayHelloStreamServer{stream})
+}
+
+type ProdService_SayHelloStreamServer interface {
+	Send(*ProductResponse) error
+	Recv() (*ProductRequest, error)
+	grpc.ServerStream
+}
+
+type prodServiceSayHelloStreamServer struct {
+	grpc.ServerStream
+}
+
+func (x *prodServiceSayHelloStreamServer) Send(m *ProductResponse) error {
+	return x.ServerStream.SendMsg(m)
+}
+
+func (x *prodServiceSayHelloStreamServer) Recv() (*ProductRequest, error) {
+	m := new(ProductRequest)
+	if err := x.ServerStream.RecvMsg(m); err != nil {
+		return nil, err
+	}
+	return m, nil
+}
+
 // ProdService_ServiceDesc is the grpc.ServiceDesc for ProdService service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -239,6 +303,12 @@ var ProdService_ServiceDesc = grpc.ServiceDesc{
 			StreamName:    "GetProductStockServerStream",
 			Handler:       _ProdService_GetProductStockServerStream_Handler,
 			ServerStreams: true,
+		},
+		{
+			StreamName:    "SayHelloStream",
+			Handler:       _ProdService_SayHelloStream_Handler,
+			ServerStreams: true,
+			ClientStreams: true,
 		},
 	},
 	Metadata: "product.proto",

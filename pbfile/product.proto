@@ -31,8 +31,10 @@ service ProdService{
   rpc GetProductStock(ProductRequest) returns (ProductResponse);
   //客户端流 定义方法
   rpc UpdateProductStockClientStream(stream ProductRequest) returns (ProductResponse);
-  //服务端流定义方法
+  //服务端流 定义方法
   rpc GetProductStockServerStream(ProductRequest) returns(stream ProductResponse);
+  //双向流 定义方法
+  rpc SayHelloStream(stream ProductRequest) returns(stream ProductResponse);
 }
 
 

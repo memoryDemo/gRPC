@@ -9,7 +9,6 @@ import (
 	"github.com/memory-grpc/service"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials"
-	"io"
 	"io/ioutil"
 	"log"
 	"math/rand"
@@ -92,26 +91,50 @@ func main() {
 	//}
 
 	//5. 服务端流
-	request := &service.ProductRequest{ProdId: 123}
-	stream, err := prodServiceClient.GetProductStockServerStream(context.Background(), request)
-	if err != nil {
-		log.Fatal("获取流出错", err)
-	}
+	//request := &service.ProductRequest{ProdId: 123}
+	//stream, err := prodServiceClient.GetProductStockServerStream(context.Background(), request)
+	//if err != nil {
+	//	log.Fatal("获取流出错", err)
+	//}
+	//
+	//for {
+	//	recv, err := stream.Recv()
+	//	if err != nil {
+	//		if err == io.EOF {
+	//			fmt.Println("客户端数据接收完成")
+	//			err := stream.CloseSend()
+	//			if err != nil {
+	//				log.Fatal(err)
+	//			}
+	//			break
+	//		}
+	//		log.Fatal(err)
+	//	}
+	//	fmt.Println("客户端收到的流", recv.ProdStock)
+	//}
 
+	// 6.  双向流
+	stream, err := prodServiceClient.SayHelloStream(context.Background())
+	if err != nil {
+		log.Fatal(err)
+	}
 	for {
+		// 发消息
+		err = stream.Send(&service.ProductRequest{ProdId: int32(rand.Intn(50))})
+		if err != nil {
+			log.Fatal("客户端发送信息失败", err)
+		}
+		// 睡眠
+		time.Sleep(time.Second)
+
+		// 收消息
 		recv, err := stream.Recv()
 		if err != nil {
-			if err == io.EOF {
-				fmt.Println("客户端数据接收完成")
-				err := stream.CloseSend()
-				if err != nil {
-					log.Fatal(err)
-				}
-				break
-			}
 			log.Fatal(err)
 		}
-		fmt.Println("客户端收到的流", recv.ProdStock)
+		//websocket 代替 stream  主要用心跳检测
+		fmt.Println("客户端收到的流信息", recv.ProdStock)
+
 	}
 }
 

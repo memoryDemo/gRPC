@@ -75,3 +75,20 @@ func (p *productService) GetProductStockServerStream(request *ProductRequest, st
 		}
 	}
 }
+
+// SayHelloStream 双向流
+func (p *productService) SayHelloStream(stream ProdService_SayHelloStreamServer) error {
+	for {
+		recv, err := stream.Recv()
+		if err != nil {
+			return nil
+		}
+		fmt.Println("服务端收到客户端的消息", recv.ProdId)
+		time.Sleep(time.Second)
+		rsp := &ProductResponse{ProdStock: recv.ProdId}
+		err = stream.Send(rsp)
+		if err != nil {
+			return nil
+		}
+	}
+}
